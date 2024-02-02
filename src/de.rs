@@ -230,6 +230,26 @@ impl<'de> Deserializer<'de> {
                     Err(utf8err) => Err(Error::InvalidUtf8(utf8err)),
                 }
             },
+            b if b >= 0x30 && b <= 0x39 => {
+                debug!("0x{:x?} -> deserializing unsigned integer (1 to 9)", b);
+                let v:u64 = match u64::try_from((b - 0x30) as u64) {
+                    Ok(v) => v,
+                    Err(_) => return Err(Error::NumberTooLarge),
+                };
+                self.consume_bytes(1);
+                let attribute = match v {
+                    1 => "_key",
+                    2 => "_rev",
+                    3 => "_id",
+                    4 => "_from",
+                    5 => "_to",
+                    n => {
+                        let msg = format!("Invalid integer: {}, valid: 1, 2, 3, 4, 5", n);
+                        return Err(Error::Message(msg));
+                    }
+                };
+                Ok(attribute.to_owned())
+            },
             _ => Err(Error::ExpectedString),
         }
     }

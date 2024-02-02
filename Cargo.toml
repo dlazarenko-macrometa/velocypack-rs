@@ -6,7 +6,7 @@ description = "Implementation of ArangoDB's VelocyPack protocol."
 repository = "https://github.com/dlazarenko-macrometa/velocypack-rs"
 license = "Apache-2.0"
 readme = "README.md"
-edition = "2024"
+edition = "2018"
 
 [dependencies]
 serde = "1.0.116"
