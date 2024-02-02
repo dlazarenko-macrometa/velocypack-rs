@@ -1,12 +1,12 @@
 [package]
 name = "velocypack"
-version = "0.1.4"
-authors = ["Dave Challis <dave@suicas.net>"]
+version = "0.1.5"
+authors = ["Dmytro Lazarenko <dmytro.lazarenko@macrometa.com>"]
 description = "Implementation of ArangoDB's VelocyPack protocol."
-repository = "https://github.com/davechallis/rust-velocypack"
+repository = "https://github.com/dlazarenko-macrometa/velocypack-rs"
 license = "Apache-2.0"
 readme = "README.md"
-edition = "2018"
+edition = "2024"
 
 [dependencies]
 serde = "1.0.116"
