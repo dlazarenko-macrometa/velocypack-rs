@@ -62,6 +62,8 @@ Serialize  Deserialize  Value type
 
 ## Example
 
+### Dependencies
+
 `Cargo.toml`:
 
 ```
@@ -70,7 +72,32 @@ velocypack = "0.1.5"
 serde = { version = "1.0.116", features = ["derive"] }
 ```
 
-`src/main.rs`:
+### Deserialize
+
+```rust
+#[derive(Deserialize)]
+struct Msg {
+    _key: String,
+    _rev: String,
+    #[serde(with = "serde_bytes")]
+    value: Vec<u8>
+}
+
+fn main () {
+    let payload = "CycDMURrZXkyMktfaFVVR2J0YS0tX0V2YWx1ZcAGdmFsdWUxAwkW";
+    let bytes = base64::decode(&payload.as_bytes()).unwrap();
+    match velocypack::from_bytes::<Msg>(&bytes) {
+        Ok(msg) => {
+            println!("_key = {}", msg._key);
+            println!("_rev = {}", msg._rev);
+            println!("value = {}", String::from_utf8(msg.value).unwrap());
+        },
+        Err(err) => println!("error: {} ", err),
+    }
+}
+```
+
+### Serialize
 
 ```rust
 use serde::Serialize;
@@ -97,6 +124,8 @@ fn main() {
     println!("{:#04x?}", velocypack::to_bytes(&p).unwrap());
 }
 ```
+
+
 
 Output can be checked using the
 [VelocyPack tools](https://github.com/arangodb/velocypack/tree/master/tools),
