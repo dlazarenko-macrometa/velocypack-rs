@@ -439,9 +439,9 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         self.deserialize_string(visitor)
     }
 
-    fn deserialize_ignored_any<V>(self, _visitor: V) -> Result<V::Value> where
+    fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value> where
         V: Visitor<'de> {
-        unimplemented!()
+        self.deserialize_any(visitor)
     }
 
     fn is_human_readable(&self) -> bool {
