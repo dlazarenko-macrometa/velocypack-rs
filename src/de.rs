@@ -253,6 +253,51 @@ impl<'de> Deserializer<'de> {
             _ => Err(Error::ExpectedString),
         }
     }
+
+    fn parse_byte_buf(&mut self) -> Result<Vec<u8>> {
+        match self.peek_byte()? {
+            b if b >= 0xc0 && b <= 0xc7 => {
+                self.consume_header();
+                let n_bytes = (b - 0xbf) as usize;
+                if n_bytes == 0 {
+                    return Ok(Vec::<u8>::new())
+                }
+                let length: i64 = match n_bytes {
+                    1 => {
+                        let mut le_bytes: [u8; 1] = [0x00; 1];
+                        le_bytes[..n_bytes].copy_from_slice(&self.input[..n_bytes]);
+                        i8::from_le_bytes(le_bytes) as i64
+                    },
+                    2 => {
+                        let mut le_bytes: [u8; 2] = [0x00; 2];
+                        le_bytes[..n_bytes].copy_from_slice(&self.input[..n_bytes]);
+                        i16::from_le_bytes(le_bytes) as i64
+                    },
+                    4 => {
+                        let mut le_bytes: [u8; 4] = [0x00; 4];
+                        le_bytes[..n_bytes].copy_from_slice(&self.input[..n_bytes]);
+                        i32::from_le_bytes(le_bytes) as i64
+                    },
+                    8 => {
+                        let mut le_bytes: [u8; 8] = [0x00; 8];
+                        le_bytes[..n_bytes].copy_from_slice(&self.input[..n_bytes]);
+                        i64::from_le_bytes(le_bytes)
+                    },
+                    n => {
+                        let msg = format!("Invalid byte length for signed integer: {} (valid: 1, 2, 4, 8)", n);
+                        return Err(Error::Message(msg));
+                    },
+                };
+                self.consume_bytes(n_bytes);
+                let b:&[u8] = &self.input[..length as usize];
+                self.consume_bytes(length as usize);
+                Ok(b.to_vec())
+            }
+            n => {
+                Err(Error::ExpectedByteBuf)
+            },
+        }
+    }
 }
 
 /// Deserialize a single VelocyPack's bytes into a struct.
@@ -372,9 +417,9 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         unimplemented!()
     }
 
-    fn deserialize_byte_buf<V>(self, _visitor: V) -> Result<V::Value> where
+    fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value> where
         V: Visitor<'de> {
-        unimplemented!()
+        visitor.visit_byte_buf(self.parse_byte_buf()?)
     }
 
     fn deserialize_option<V>(self, _visitor: V) -> Result<V::Value> where
